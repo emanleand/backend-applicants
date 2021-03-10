@@ -56,7 +56,10 @@ class FindUsersController
                 ->withStatus(200, 'OK');
         } catch (\Throwable $th) {
 
-            $response->getBody()->write('Conflict');
+            $response->getBody()->write(json_encode([
+                'message' => 'Conflict'
+            ]));
+            
             return $response->withHeader('Content-Type', 'application/json')
                 ->withStatus(403, 'conflict');
         }

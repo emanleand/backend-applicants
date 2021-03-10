@@ -32,6 +32,65 @@ class LocalUsersRepository implements UsersRepository
     public function add(User $user): void
     {
         // TODO: implement me
+        $newUser = [
+            $user->getId()->getValue(),
+            $user->getLogin()->getValue(),
+            $user->getType()->getValue()
+        ];
+        
+        $this->insertDataLocal('users', $newUser);
+        
+        try {
+            $profiles = [
+                $user->getId()->getValue(),
+                $user->getProfile()->getName()->getValue(),
+                $user->getProfile()->getCompany()->getValue(),
+                $user->getProfile()->getLocation()->getValue()
+            ];
+
+            $this->insertDataLocal('profiles', $profiles);
+        } catch (\Throwable $th) {
+            //Rollback in table users.csv
+        }
+    }
+
+    /**
+     * This function look for an available id in the local file
+     */
+    public function getIdAvailable(string $file = 'users'): int
+    {
+        # Get last line
+        $path = '../data/' . $file . '.csv';
+        $line = '';
+
+        $fp = fopen($path, 'r');
+        $cursor = -1;
+
+        fseek($fp, $cursor, SEEK_END);
+        $char = fgetc($fp);
+
+
+        while ($char === "\n" || $char === "\r") {
+            fseek($fp, $cursor--, SEEK_END);
+            $char = fgetc($fp);
+        }
+
+        while ($char !== false && $char !== "\n" && $char !== "\r") {
+
+            $line = $char . $line;
+            fseek($fp, $cursor--, SEEK_END);
+            $char = fgetc($fp);
+        }
+
+        fclose($fp);
+        #Get column id
+        $idExplode = explode(',', $line);
+        $idColumn = $idExplode[0];
+
+        #Calculate new id
+        $id = (int) explode('CSV', $idColumn)[1];
+
+        return $id + 1;
     }
 
     /**
@@ -90,5 +149,18 @@ class LocalUsersRepository implements UsersRepository
         fclose($fp);
 
         return $profiles;
+    }
+
+    /**
+     * This inserts a new record locally
+     */
+    private function insertDataLocal(string $file, array $newUser): void
+    {
+        $path = '../data/' . $file . '.csv';
+        $fp = fopen($path, "a");
+        
+        fputcsv($fp, $newUser);
+        
+        fclose($fp);
     }
 }
