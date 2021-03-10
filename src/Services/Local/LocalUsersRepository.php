@@ -88,7 +88,11 @@ class LocalUsersRepository implements UsersRepository
         $idColumn = $idExplode[0];
 
         #Calculate new id
-        $id = (int) explode('CSV', $idColumn)[1];
+        try {
+            $id = (int) explode('CSV', $idColumn)[1];
+        } catch (\Throwable $th) {
+            $id = 0;
+        }
 
         return $id + 1;
     }
