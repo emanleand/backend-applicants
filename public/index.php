@@ -31,6 +31,7 @@ AppFactory::setContainer($container);
 $app = AppFactory::create();
 $app->add(new WhoopsMiddleware(['enable' => env('API_ENV') === 'local']));
 
+$app->setBasePath("/backend-applicants/public/index.php");
 // routes
 $app->get('/', VersionController::class);
 $app->get('/users', FindUsersController::class);
